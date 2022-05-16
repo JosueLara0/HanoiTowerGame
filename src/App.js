@@ -1,24 +1,28 @@
+// libraries
 import React, { useEffect, useState } from "react";
-import GameOptionsComp from "./components/GameOptionsComp";
+// components
+import GameOptionsComp from "./components/GameOptionsComp/GameOptionsComp";
 import TowerComp from "./components/TowerComp";
 import WinMessageComp from "./components/WinMessageComp";
+// utils
 import Tower from "./utils/Tower";
+// styles
 import "./App.css";
 
 const App = () => {
-  //Contar el numero de movimientos
+  // total movements count
   const [moveCount, setMoveCount] = useState(0);
-  //El disco que se está movimiendo
+  //  tile in movements
   const [dragTile, setDragTile] = useState();
-  //Los discos para la torre principal
-  const [disks, setDisks] = useState(3);
+  // main tower disks
+  const [disks, setDisks] = useState(5);
 
-  //Los discos de cada torre (1, 2, 3)
+  // tiles for each tower
   const [tiles, setTiles] = useState([]);
   const [tilesTwo, setTilesTwo] = useState([]);
   const [tilesThree, setTilesThree] = useState([]);
 
-  //Las 3 torres (columnas)
+  // towers
   let [towerOne, setTowerOne] = useState(new Tower());
   let [towerTwo, setTowerTwo] = useState(new Tower());
   let [towerThree, setTowerThree] = useState(new Tower());
@@ -36,13 +40,11 @@ const App = () => {
   };
 
   useEffect(() => {
-    //Resetear las torres
     reset();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [disks]);
 
-  //Actualizar todos los discos de las torres
-  //Esta actualización se hará con cada movimiento de las torres
+  // Update all disks in each tower after every movement
   useEffect(() => {
     setTiles(towerOne.disks.traverse());
   }, [towerOne]);
@@ -55,12 +57,24 @@ const App = () => {
     setTilesThree(towerThree.disks.traverse());
   }, [towerThree]);
 
+  // Reset towers
   const reset = () => {
-    //COMPLETAR
+    towerOne = new Tower();
+    towerTwo = new Tower();
+    towerThree = new Tower();
+    if (disks > 0) {
+      for (let i = disks; i > 0; i--) {
+        towerOne.add(i);
+      }
+    }
+    setTowerOne(towerOne);
+    setTowerTwo(towerTwo);
+    setTowerThree(towerThree);
+    setMoveCount(0);
   };
 
   const handleDrag = (e, tile, id) => {
-    //Funcion que se lanza cada vez que movemos un disco que se encuentra en la parte superior de una torre
+    // Function that is triggered every time we move a disk on top of a tower.
     const dragTile = { tile, towerId: id };
     if (towers[id].tower.disks.top === dragTile.tile) {
       setDragTile(dragTile);
@@ -70,26 +84,40 @@ const App = () => {
   };
 
   const handleDrop = (e) => {
-    //Funcion que se lanza cada vez que un disco se deja en una nueva torre 
-    const dropColumn = e.currentTarget.id; //ID de la columna de destino
-    let source = towers[dragTile.towerId].tower; //Torre de origen
-    let destination = towers[dropColumn].tower; //Torre de destino
+    // Function that is triggered each time a disk is left in a new tower.
+    const dropColumn = e.currentTarget.id; // ID destiny column
+    let source = towers[dragTile.towerId].tower; // origin tower
+    let destination = towers[dropColumn].tower; // destiny tower
 
-    const goodMove = source.moveTopTo(destination); //Mover el disco desde la torre de origen al destino
-    if(goodMove){ //Si es un movimiento valido -> incrementar los movimientos
-      setMoveCount((prevState) => prevState + 1); //Actualizar los movimientos
+    // Move disk from origen tower to destiny 
+    const goodMove = source.moveTopTo(destination, setMoveCount, moveCount);
+    // If a movement is valid, increment movements count and update towers
+    if (goodMove) {
+      setMoveCount((prevState) => prevState + 1);
+      setTiles(towerOne.disks.traverse());
+      setTilesTwo(towerTwo.disks.traverse());
+      setTilesThree(towerThree.disks.traverse());
     }
   };
 
   const solve = () => {
-    //COMPLETAR
+    const goodMove = towerOne.moveDisks(disks, towerThree, towerTwo);
+    if (goodMove) {
+      setMoveCount((2 ** disks) - 1)
+      setTiles(towerOne.disks.traverse());
+      setTilesTwo(towerTwo.disks.traverse());
+      setTilesThree(towerThree.disks.traverse());
+    }
   };
 
-  const winCondition = false; //COMPLETAR
+  // If all tiles have been passed to tower 3, gives victory
+  const winCondition =
+    towerOne.length === 0 && towerTwo.length === 0 ? true : false;
+
   return (
     <>
       <div className="container">
-        <GameOptionsComp disks={disks} />
+        <h1 className="h1">HANOI TOWER GAME</h1>
         <div className="content">
           <TowerComp
             id={1}
@@ -110,10 +138,15 @@ const App = () => {
             handleDrop={handleDrop}
           />
         </div>
-        {winCondition && (
-          <WinMessageComp moveCount={moveCount}/>
-        )}
-        Movimientos: {moveCount}
+        <GameOptionsComp
+          moveCount={moveCount}
+          disks={disks}
+          setDisks={setDisks}
+          reset={reset}
+          solve={solve}
+        />
+
+        {winCondition && <WinMessageComp moveCount={moveCount} />}
       </div>
     </>
   );
