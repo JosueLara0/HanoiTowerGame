@@ -4,6 +4,16 @@ App that allows to play the Hanoi tower game using linked lists and recursive fu
 
 1.  Main view of the game with its controls.
 
+# Deployment
+
+VERCEL:
+
+[LINK](https://hanoi-tower-game.vercel.app/)
+
+## Screenshots
+
+![Screenshot](src/assets/screenshots/screenshot-desktop.png)
+
 ## Libraries
 
 1.  [React](https://es.reactjs.org/)
